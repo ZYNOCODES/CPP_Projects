@@ -1,65 +1,100 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <cmath>
+#include <vector>
+#include <string>
 
-double cosineSimilarity(int Table1[], int Table2[]);
+double cosineSimilarity(std::vector<std::string> V1,std::vector<std::string> V2);
 
 int main() {
-    // Initialize the two files
+
     std::ifstream file1("file1.txt");
     std::ifstream file2("file5.txt");
 
-    int Table1[128] = {0};
-    int Table2[128] = {0};
+    std::vector<std::string> V1;
+    std::vector<std::string> V2;
 
-    char c;
+    std::string word;
 
-    // Read the files and fill the tables
-    while (file1.get(c)) {
-        Table1[static_cast<unsigned char>(c)]++;
+    std::cout<< "-------file 1------- "<<std::endl;
+    while (file1 >> word) {
+        V1.push_back(word);
     }
-
-    while (file2.get(c)) {
-        Table2[static_cast<unsigned char>(c)]++;
+    int i = 0;
+    while (i < V1.size()) {
+        std::cout << V1[i] << ",";
+        i++;
     }
+    std::cout<<std::endl;
 
-    // Ralculate the similarity
-    double similarity = cosineSimilarity(Table1, Table2);
-    // Display the similarity
-    std::cout << "Similarity between the files is " << similarity << "°" << std::endl;
+    std::cout<< "-------file 2------- "<<std::endl;
+    while (file2 >> word) {
+        V2.push_back(word);
+    }
+    int j = 0;
+    while (j < V2.size()) {
+        std::cout << V2[j] << ",";
+        j++;
+    }
+    double similarity = cosineSimilarity(V1, V2);
+    std::cout<< "-------result------- "<<std::endl;
+    std::cout << "Similarity between the files is : " << similarity << "°" << std::endl;
 
     file1.close();
     file2.close();
 
     return 0;
 }
-double cosineSimilarity(int Table1[], int Table2[]) {
-    double ProduitScalaire = 0.0;
-    double EuclideanTable1 = 0.0;
-    double EuclideanTable2 = 0.0;
 
-    // Calculate the scalar product and the euclidean norm of the two tables
-    for (int i = 0; i < 128; ++i) {
-        ProduitScalaire += Table1[i] * Table2[i];
-        EuclideanTable1 += Table1[i] * Table1[i];
-        EuclideanTable2 += Table2[i] * Table2[i];
+double cosineSimilarity(std::vector<std::string> V1, std::vector<std::string> V2) {
+
+    std::vector<std::string> OverlappingWords;
+    std::vector<std::string> V3(V2);
+
+    // Find the Overlapping words
+    for (size_t i = 0; i < V1.size(); ++i) {
+        for (size_t j = 0; j < V3.size(); ++j) {
+            if (V1[i] == V3[j]) {
+                OverlappingWords.push_back(V1[i]);
+                V3.erase(V3.begin() + j);
+                break;
+            }
+        }
     }
+    std::cout<<std::endl;
+    std::cout<< "-------Words that dont overlap------- "<<std::endl;
+    int i = 0;
+    while (i < V3.size()) {
+        std::cout << V3[i] << ",";
+        i++;
+    }
+    std::cout<<std::endl;
 
-    EuclideanTable1 = sqrt(EuclideanTable1);
-    EuclideanTable2 = sqrt(EuclideanTable2);
+    std::cout<< "-------Overlapping Words------- "<<std::endl;
+    int j = 0;
+    while (j < OverlappingWords.size()) {
+        std::cout << OverlappingWords[j] << ",";
+        j++;
+    }
+    std::cout<<std::endl;
 
-    // If one of the tables is empty, return 0.0
-    if (EuclideanTable1 == 0.0 || EuclideanTable2 == 0.0) {
+    // Calculate the Euclidean distance
+    double Euclidean = sqrt(V1.size() * V2.size());
+
+    // if one is empty
+    if (Euclidean == 0.0) {
         return 0.0;
     }
 
-    // Calculate the angle between the two tables
-    double result = acos(ProduitScalaire / (EuclideanTable1 * EuclideanTable2)) * (180.0 / 3.14159265358979323846);
-    
-    // if are similar, return 0.0
+    // Calculate the angle in degrees
+    double result = acos(OverlappingWords.size() / Euclidean) * (180.0 / 3.14159265358979323846);
+
     if (std::isnan(result) || result == 0) {
+        // if they are similar
         return 0.0;
     } else {
+        // if they are not similar
         return result;
     }
 }
